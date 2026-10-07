@@ -14,7 +14,7 @@ A compact template for processing *Bradyrhizobium* ITS amplicons and summarizing
 
 Genome quality and ANI are **upstream checks on reference labels**. The sample classifier does not calculate genome ANI for an ASV. The figure is conceptual: its “genome evidence check” refers to reference curation; the current per-ASV safeguard is the exact-match unresolved check in step 4.
 
-A within-target fraction can be computed as `Bj / (Bj + Be)`, with NA if both counts are zero. Bj divided by **all** *Bradyrhizobium* reads needs a separately validated genus-level denominator.
+For the main per-sample composition, use `Bj / (Bj + Be + Other_Bradyrhizobium + Unresolved_Bradyrhizobium)` and the analogous Be fraction. `Other_Bradyrhizobium` means reads assigned to non-Bj/non-Be species within the genus. Include unresolved reads in this denominator **only when their Bradyrhizobium genus assignment is supported**; keep genus-uncertain and off-target reads separate. Report these counts and the denominator for every sample. The separate within-target measure `Bj / (Bj + Be)` answers a narrower Bj-versus-Be question and must be labelled as such. Set either fraction to `NA` when its denominator is zero.
 
 ## Building the ITS reference
 
