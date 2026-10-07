@@ -4,17 +4,13 @@ A compact template for processing *Bradyrhizobium* ITS amplicons and summarizing
 
 ![BrayITS workflow](brayits.png)
 
-## Workflow
+## What the diagram means
 
-1. Trim the experiment-specific primers from paired-end FASTQ reads.
-2. Denoise and merge reads into ASV sequences and an ASV-by-sample count table.
-3. Use a curated, amplicon-region ITS reference to train a sequence classifier. It proposes Bj, Be, or Other for each ASV.
-4. If an ASV exactly matches a reference ITS that remains unresolved, label it Unresolved instead of accepting the classifier proposal.
-5. Join the final ASV calls with the count table to summarize Bj, Be, Other, and Unresolved reads per sample.
+Paired-end FASTQ reads are primer-trimmed and denoised into ASV sequences plus an ASV-by-sample count table. A sequence classifier proposes Bj, Be, or Others for each ASV. Exact reference matches are then checked for label conflicts: a *Bradyrhizobium* sequence whose species is uncertain goes to **Others**, while a sequence whose genus is uncertain goes to **Unresolved**. Final ASV calls are joined to the count table to produce per-sample read counts.
 
-Genome quality and ANI are **upstream checks on reference labels**. The sample classifier does not calculate genome ANI for an ASV. The figure is conceptual: its “genome evidence check” refers to reference curation; the current per-ASV safeguard is the exact-match unresolved check in step 4.
+Genome quality and ANI are **upstream reference-label checks**. The example classifier does not calculate ANI for a sample ASV. The genus check and exact-match override must be validated before using final Bj/Be/Others calls for phenotypes.
 
-For the main per-sample composition, use `Bj / (Bj + Be + Other_Bradyrhizobium + Unresolved_Bradyrhizobium)` and the analogous Be fraction. `Other_Bradyrhizobium` means reads assigned to non-Bj/non-Be species within the genus. Include unresolved reads in this denominator **only when their Bradyrhizobium genus assignment is supported**; keep genus-uncertain and off-target reads separate. Report these counts and the denominator for every sample. The separate within-target measure `Bj / (Bj + Be)` answers a narrower Bj-versus-Be question and must be labelled as such. Set either fraction to `NA` when its denominator is zero.
+For the main three-part composition, use `Bj / (Bj + Be + Others)` and the analogous Be and Others fractions. **Others** includes any ASV supported as *Bradyrhizobium* but not reliably called Bj or Be, including named non-target species and genus-confirmed sequences without a species name. **Unresolved** means that *Bradyrhizobium* genus membership is not established; confirmed off-target sequences are tracked separately. Both are excluded from the three-part denominator but their read counts are reported for quality review. The separate `Bj / (Bj + Be)` measure answers only the Bj-versus-Be question. Set fractions to `NA` when their denominator is zero.
 
 ## Building the ITS reference
 
@@ -22,13 +18,13 @@ For the main per-sample composition, use `Bj / (Bj + Be + Other_Bradyrhizobium +
 
 **BrayITS adaptation.** Screen candidate genomes for quality, compare their species labels with type-strain genomes using whole-genome ANI, and extract every plausible amplicon copy bounded by the study primers. Review genomes lacking an exact primer hit rather than treating them as absent. Remove primers, collapse identical inserts, retain genome/accession provenance, and flag identical ITS sequences that occur under conflicting species labels. Use the curated, unambiguous sequences for classifier training; keep unresolved sequences for the exact-match safeguard. Validate species calls on independent genomes or mock communities before using the resulting reference for phenotypes. ANI checks the *genome label*; it does not classify a sample ASV directly.
 
-**Primer choice.** Use the published assay primers when reproducing the Teraishi amplicon. If a study uses different primers, rebuild the reference for that exact amplified region and check coverage and off-target amplification again. Primer sequences are supplied by the user rather than hard-coded in this template.
+**Primer choice.** Use the published assay primers when reproducing the Teraishi amplicon. If a study uses different primers, rebuild the reference for that exact amplified region and check coverage and off-target amplification again. Primer sequences are intentionally supplied by the user rather than hard-coded in this template.
 
 **Citation:** Teraishi M. et al. (2025). [Identification of Novel Candidate Genes Associated With the Symbiotic Compatibility of Soybean With Rhizobia Under Natural Conditions](https://doi.org/10.1002/pld3.70069). *Plant Direct* 9(5): e70069.
 
 ## Template scripts
 
-The shell scripts in [`scripts/`](scripts/) illustrate the QIIME 2 input and ASV stages. Set your own manifest and primer sequences. No reads, reference sequences, genome assemblies, trained models, or sample metadata are bundled here.
+The shell scripts in [`scripts/`](scripts/) show the QIIME 2 input and ASV stages. Replace the example manifest and primer placeholders with experiment-specific values. The scripts deliberately do not bundle reads, reference sequences, genome assemblies, trained models, or sample metadata.
 
 ```bash
 export MANIFEST=/path/to/manifest.tsv
@@ -39,8 +35,8 @@ bash scripts/01_asv_template.sh
 bash scripts/02_export_asvs.sh
 ```
 
-The paired-end manifest needs `sample-id`, `forward-absolute-filepath`, and `reverse-absolute-filepath` columns. Inspect read quality and amplicon length before choosing DADA2 truncation lengths. Zero truncation in the template is a starting value, not a universal recommendation.
+`manifest.tsv` must use QIIME 2's paired-end manifest format with `sample-id`, `forward-absolute-filepath`, and `reverse-absolute-filepath` columns. Check read quality and amplicon length before choosing DADA2 truncation values. The template uses zero truncation as a starting point, not as a universally recommended setting.
 
 ## Scope
 
-This is a **workflow template**, not a released reference database or a validated classifier package. A new study needs a versioned ITS reference, independent validation, and explicit handling of unresolved and non-target reads.
+This is a **workflow template**, not a released reference database or a validated classifier package. Species calls for a new study require a versioned ITS reference, independent strain or mock-community validation, and an explicit treatment of uncertain-genus and off-target reads. The diagram is conceptual: its “genome evidence check” refers to reference curation upstream of sample classification. An exact match to a species-uncertain but genus-confirmed reference belongs in Others, not Unresolved.
