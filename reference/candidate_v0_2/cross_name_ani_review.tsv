@@ -1,0 +1,6 @@
+Haplotype_ID	Assembly	Original_NCBI_species_token	Best_type_species	Best_type_ANI	Second_type_species	Second_type_ANI	ANI_gap	Conservative_haplotype_label	Evidence_tier
+DNH00015	GCF_024199825.1	brasilense	brasilense	96.969	australafricanum	96.767	0.201	UNRESOLVED	GENUS_ONLY_UNRESOLVED
+DNH00015	GCF_056156585.1	australafricanum	brasilense	97.018	australafricanum	96.749	0.268	UNRESOLVED	GENUS_ONLY_UNRESOLVED
+DNH00087	GCF_014194605.1	lupini	japonicum	99.991	barranii	95.297	4.693	japonicum	NAMED_GENOME_AND_ANI_SCREEN
+DNH00240	GCF_018131185.1	diazoefficiens	tunisiense	98.727	frederickii	90.416	8.311	tunisiense	NAMED_GENOME_AND_ANI_SCREEN
+DNH00282	GCF_000374205.1	japonicum	huanghuaihaiense	99.939	sacchari	91.957	7.982	huanghuaihaiense	NAMED_GENOME_AND_ANI_SCREEN
